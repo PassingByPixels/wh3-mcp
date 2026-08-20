@@ -10,11 +10,13 @@ $ErrorActionPreference = 'Stop'
 
 $ProjectRoot = Split-Path -Parent $PSCommandPath
 $LuaPath = Join-Path $ProjectRoot 'pack\script\_lib\mod\wh3_mcp.lua'
+$ReadmePath = Join-Path $ProjectRoot 'pack\readme.txt'
 $BuildPath = Join-Path $ProjectRoot 'wh3_mcp_server.pack'
 $DeployPath = 'C:\Program Files (x86)\Steam\steamapps\common\Total War WARHAMMER III\data\wh3_mcp_server.pack'
 $BaseUrl = 'http://127.0.0.1:45127/mcp'
 
 if (-not (Test-Path $LuaPath)) { Write-Error "Lua script not found: $LuaPath"; exit 1 }
+if (-not (Test-Path $ReadmePath)) { Write-Error "Readme not found: $ReadmePath"; exit 1 }
 
 # ---------------------------------------------------------------------------
 # 1. RPFM session
@@ -64,6 +66,18 @@ $addBody = @"
 $addBody | Out-File "$env:TEMP\mcp_add.json" -Encoding ascii
 $r = curl.exe -s -X POST $BaseUrl -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' -H "mcp-session-id: $SessionId" -d "@$env:TEMP\mcp_add.json" 2>&1
 if ($r -match '"isError":false') { Write-Host 'File added OK' } else { Write-Error "Add file failed: $r"; exit 1 }
+
+# ---------------------------------------------------------------------------
+# 4b. Add the agent-readable manual at the pack root
+# ---------------------------------------------------------------------------
+Write-Host '=== RPFM: add readme.txt ==='
+$EscapedReadmePath = $ReadmePath -replace '\\', '\\'
+$addBody2 = @"
+{"jsonrpc":"2.0","id":5,"method":"tools/call","params":{"name":"add_packed_files","arguments":{"pack_key":"$PackKey","source_paths":["$EscapedReadmePath"],"destination_paths":"[{\"File\":\"readme.txt\"}]"}}}
+"@
+$addBody2 | Out-File "$env:TEMP\mcp_add2.json" -Encoding ascii
+$r = curl.exe -s -X POST $BaseUrl -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' -H "mcp-session-id: $SessionId" -d "@$env:TEMP\mcp_add2.json" 2>&1
+if ($r -match '"isError":false') { Write-Host 'Readme added OK' } else { Write-Error "Add readme failed: $r"; exit 1 }
 
 # ---------------------------------------------------------------------------
 # 5. Save to project folder (always writable)
