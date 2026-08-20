@@ -1,0 +1,20 @@
+{
+  "name": "wh3-mcp-server",
+  "version": "0.1.0",
+  "description": "MCP server for Warhammer 3 mod testing automation",
+  "type": "module",
+  "main": "index.js",
+  "bin": {
+    "wh3-mcp": "./index.js"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "test": "node --test test/"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

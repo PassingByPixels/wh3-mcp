@@ -1,0 +1,4 @@
+node_modules/
+*.pack
+wh3_mcp_command.json
+wh3_mcp_result.json
